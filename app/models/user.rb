@@ -7,7 +7,7 @@ class User < ApplicationRecord
 
 
   def generate_new_authentication_token
-    token = User.generate_unique_security_token
+    token = User.generate_unique_secure_token
     update_attributes authentication_token: token
   end
 

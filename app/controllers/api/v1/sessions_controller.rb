@@ -2,6 +2,8 @@ class Api::V1::SessionsController < Devise::SessionsController
 
   before_action :sign_in_params, only: :create
   before_action :load_user, only: :create
+  before_action :valid_token, only: :destroy
+  skip_before_action :verify_signed_out_user, only: :destroy
 
   #sign_in
   def create
@@ -11,6 +13,13 @@ class Api::V1::SessionsController < Devise::SessionsController
     else
       json_response "Unauthorized", false, {}, :unauthorized
     end
+  end
+
+  #log out
+  def destroy
+    sign_out @user
+    @user.generate_new_authentication_token
+    json_response "Log out Successfully", true, {}, :ok
   end
 
   private
@@ -25,6 +34,15 @@ class Api::V1::SessionsController < Devise::SessionsController
         return @user
       else
         json_response "Cannot get User", false, {}, :failure
+      end
+    end
+
+    def valid_token
+      @user = User.find_by authentication_token: request.headers["AUTH-TOKEN"]
+      if @user
+        return @user
+      else
+        json_response "Invalid Token", false, {}, :failure
       end
     end
 
